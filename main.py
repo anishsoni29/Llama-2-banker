@@ -3,7 +3,7 @@ import streamlit as st
 
 from transformers import AutoTokenizer, AutoModelForCausalLM, TextStreamer
 import torch
-from llama_index.prompts.prompts import SimpleInputPrompt
+from llama_index.core.prompts.prompts import SimpleInputPrompt
 from llama_index.llms import HuggingFaceLLM
 from llama_index.embeddings import LangchainEmbedding
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
@@ -71,32 +71,64 @@ service_context = ServiceContext.from_defaults(
 # And set the service context
 set_global_service_context(service_context)
 
-# Download PDF Loader 
-PyMuPDFReader = download_loader("PyMuPDFReader")
-# Create PDF Loader
-loader = PyMuPDFReader()
-# Load documents 
-documents = loader.load(file_path=Path('./data/annualreport.pdf'), metadata=True)
+# # Download PDF Loader 
+# PyMuPDFReader = download_loader("PyMuPDFReader")
+# # Create PDF Loader
+# loader = PyMuPDFReader()
+# # Load documents 
+# documents = loader.load(file_path=Path('./data/annualreport.pdf'), metadata=True)
 
-# Create an index - we'll be able to query this in a sec
-index = VectorStoreIndex.from_documents(documents)
-# Setup index query engine using LLM 
-query_engine = index.as_query_engine()
+# # Create an index - we'll be able to query this in a sec
+# index = VectorStoreIndex.from_documents(documents)
+# # Setup index query engine using LLM 
+# query_engine = index.as_query_engine()
 
-# Create centered main title 
+
+#PDF---------------------------------------------------------
+#what is you need to drop in the pdf
 st.title('🦙 Llama Banker')
-# Create a text input box for the user
-prompt = st.text_input('Input your prompt here')
+# Create a file uploader in the app
+uploaded_file = st.file_uploader("Choose a PDF file", type=['pdf'])
 
-# If the user hits enter
-if prompt:
-    response = query_engine.query(prompt)
-    # ...and write it out to the screen
-    st.write(response)
-
-    # Display raw response object
-    with st.expander('Response Object'):
+# If the user uploads a file
+if uploaded_file:
+    # Load the file
+    documents = loader.load(file_path=uploaded_file, metadata=True)
+    # Create an index
+    index = VectorStoreIndex.from_documents(documents)
+    # Setup index query engine using LLM 
+    query_engine = index.as_query_engine()
+    # Create a text input box for the user
+    prompt = st.text_input('Input your prompt here')
+    # If the user hits enter
+    if prompt:
+        response = query_engine.query(prompt)
+        # ...and write it out to the screen
         st.write(response)
-    # Display source text
-    with st.expander('Source Text'):
-        st.write(response.get_formatted_sources())
+
+        # Display raw response object
+        with st.expander('Response Object'):
+            st.write(response)
+        # Display source text
+        with st.expander('Source Text'):
+            st.write(response.get_formatted_sources())
+
+
+# ------- old_code ---------
+# Create centered main title 
+# st.title('🦙 Llama Banker')
+# # Create a text input box for the user
+# prompt = st.text_input('Input your prompt here')
+
+# # If the user hits enter
+# if prompt:
+#     response = query_engine.query(prompt)
+#     # ...and write it out to the screen
+#     st.write(response)
+
+#     # Display raw response object
+#     with st.expander('Response Object'):
+#         st.write(response)
+#     # Display source text
+#     with st.expander('Source Text'):
+#         st.write(response.get_formatted_sources())
